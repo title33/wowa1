@@ -1,24 +1,23 @@
-local args = {
-    [1] = "Melee",
-    [2] = 1
-}
+if not _G.XYLONOPOINTLOSING then
+    _G.XYLONOPOINTLOSING = true
+    local StatusIncreaseAmount = 0
+    local old
+    old = hookmetamethod(game, '__namecall', function(self, ...)
+        local args = {...}
+        local method = getnamecallmethod()
 
-local player = game.Players.LocalPlayer
-if player then
-    local remote = game:GetService("ReplicatedStorage").Remote.Other.upstats
-    if remote then
-        remote:FireServer(unpack(args))
-    end
-end
-
--- ServerScript
-
-game:GetService("ReplicatedStorage").Remote.Other.upstats.OnServerEvent:Connect(function(targetPlayer, args)
-    -- เพิ่มค่า IntValue ของผู้เล่น
-    local IntValue = targetPlayer:FindFirstChild("IntValue")
-    if IntValue then
-        if targetPlayer:HasPermission("upstats") then
-            IntValue.Value = IntValue.Value + args[2]
+        if not checkcaller() and method == 'FireServer' and self.Name == "RemoteEvent" and self.Parent.Parent.Parent.Parent.Name == "Status" then
+            if args[1] >= 1 and args[1] <= 150 then
+                StatusIncreaseAmount = args[1]
+            elseif args[1] > 150 then
+                StatusIncreaseAmount = 150
+            end
+            args[1] = 0
+            for i = 1, StatusIncreaseAmount do
+                old(self, 0.5)
+            end
         end
-    end
-end)
+
+        return old(self, unpack(args))
+    end)
+end
